@@ -82,11 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const copy = ctx => {
-      if (document.queryCommandSupported && document.queryCommandSupported('copy')) {
-        document.execCommand('copy')
+    const copy = async (text, ctx) => {
+      try {
+        await navigator.clipboard.writeText(text)
         alertInfo(ctx, GLOBAL_CONFIG.copy.success)
-      } else {
+      } catch (err) {
+        console.error('Failed to copy: ', err)
         alertInfo(ctx, GLOBAL_CONFIG.copy.noSupport)
       }
     }
@@ -95,14 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const highlightCopyFn = (ele, clickEle) => {
       const $buttonParent = ele.parentNode
       $buttonParent.classList.add('copy-true')
-      const selection = window.getSelection()
-      const range = document.createRange()
       const preCodeSelector = isPrismjs ? 'pre code' : 'table .code pre'
-      range.selectNodeContents($buttonParent.querySelector(`${preCodeSelector}`))
-      selection.removeAllRanges()
-      selection.addRange(range)
-      copy(clickEle.previousElementSibling)
-      selection.removeAllRanges()
+      const codeElement = $buttonParent.querySelector(preCodeSelector)
+      if (!codeElement) return
+      copy(codeElement.innerText, clickEle.previousElementSibling)
       $buttonParent.classList.remove('copy-true')
     }
 
@@ -238,8 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
       gap: 5,
       isConstantSize: true,
       sizeRange: [150, 600],
-      useResizeObserver: true,
-      observeChildren: true,
+      // useResizeObserver: true,
+      // observeChildren: true,
       useTransform: true
       // useRecycle: false
     })
@@ -344,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const addJustifiedGallery = async (ele, tabs = false) => {
+    if (!ele.length) return
     const init = async () => {
       for (const item of ele) {
         if (btf.isHidden(item) || item.classList.contains('loaded')) continue
@@ -361,8 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     }
-
-    if (!ele.length) return
 
     if (typeof InfiniteGrid === 'function') {
       init()
@@ -587,19 +583,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const rightSideFn = {
     readmode: () => { // read mode
       const $body = document.body
-      $body.classList.add('read-mode')
       const newEle = document.createElement('button')
-      newEle.type = 'button'
-      newEle.className = 'fas fa-sign-out-alt exit-readmode'
-      $body.appendChild(newEle)
 
-      const clickFn = () => {
+      const exitReadMode = () => {
         $body.classList.remove('read-mode')
         newEle.remove()
-        newEle.removeEventListener('click', clickFn)
+        newEle.removeEventListener('click', exitReadMode)
       }
 
-      newEle.addEventListener('click', clickFn)
+      $body.classList.add('read-mode')
+      newEle.type = 'button'
+      newEle.className = 'fas fa-sign-out-alt exit-readmode'
+      newEle.addEventListener('click', exitReadMode)
+      $body.appendChild(newEle)
     },
     darkmode: () => { // switch between light and dark mode
       const willChangeMode = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
@@ -815,8 +811,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!switchBtn) return
 
     let switchDone = false
+    const postComment = document.getElementById('post-comment')
     const handleSwitchBtn = () => {
-      document.getElementById('post-comment').classList.toggle('move')
+      postComment.classList.toggle('move')
       if (!switchDone && typeof loadOtherComment === 'function') {
         switchDone = true
         loadOtherComment()

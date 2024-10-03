@@ -44,6 +44,11 @@ if hexo-config('waline.bg')
       &:focus
         background-image: none
 
+.twikoo
+  .tk-content
+    p
+      margin: 3px 0
+
 .fireworks
   position: fixed
   top: 0
@@ -139,8 +144,9 @@ if hexo-config('math.use')
           &:before
             content: none
 
-.snackbar-css
-  border-radius: 5px !important
+.snackbar-container.snackbar-css
+  addBorderRadius(5)
+  opacity: .85 !important
 
 .abc-music-sheet
   margin: 0 0 20px
