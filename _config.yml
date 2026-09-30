@@ -427,7 +427,6 @@ copy:
     enable: false
     limit_count: 150
 
-# Need to install the hexo-wordcount plugin
 wordcount:
   enable: false
   # Display the word count of the article in post meta
@@ -652,6 +651,7 @@ artalk:
   site:
   # Use Artalk visitor count as the page view count
   visitor: false
+  vote: false
   option:
 
 # --------------------------------------
